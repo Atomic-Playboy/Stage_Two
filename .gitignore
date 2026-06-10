@@ -1,0 +1,33 @@
+# --- CLion / JetBrains ---
+.idea/
+*.iml
+
+# --- CMake / Build Artifacts ---
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+build.ninja
+compile_commands.json
+.ninja_deps
+.ninja_log
+
+# --- Executables and Binaries ---
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+
+# --- Log Files ---
+*.log
+*.log.*
+
+# --- Python / Build Scripts ---
+__pycache__/
+*.pyc
+
+# --- External Dependencies ---
+# Explicitly ignoring the _deps directory created by CMake
+_deps/

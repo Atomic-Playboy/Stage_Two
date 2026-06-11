@@ -1,5 +1,10 @@
+/**
+ * Logger.cpp
+ * Thread-safe logging mechanism preventing buffer overflows in UI mode.
+ */
+
 #include "Logger.h"
-#include "PathConstants.h"
+#include "Core/AppConstants.h"
 #include <iostream>
 #include <sstream>
 #include <chrono>
@@ -16,6 +21,9 @@ ThreadSafeLogger::~ThreadSafeLogger() {
     if (logFile.is_open()) logFile.close();
 }
 
+// [STUDY GUIDE: Williams, Chapter 3.2 - "Protecting shared data with mutexes"]
+// std::lock_guard ensures that if multiple threads try to log simultaneously (e.g. rapid MIDI input + UI event),
+// only one thread can modify the stringBuffer and write to the file at a time.
 void ThreadSafeLogger::log(const std::string& message) {
     std::lock_guard<std::mutex> lock(logMutex);
     auto now = std::chrono::system_clock::now();

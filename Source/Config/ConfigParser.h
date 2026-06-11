@@ -2,16 +2,16 @@
 #define CONFIG_PARSER_H
 
 #include "Core/MidiData.h"
-#include "Core/GtrWorkspaceConfig.h"
+#include "Core/GtrSlotConfig.h"
 #include "Core/Logger.h"
 #include <string>
 #include <vector>
 
 class ConfigParser {
 public:
-    static bool loadWorkspaceJson(const std::string& filePath, WorkspaceConfig& workspace, ThreadSafeLogger& logger);
+    static bool loadDashboardJson(const std::string& filePath, DashboardConfig& dashboard, ThreadSafeLogger& logger);
     static std::vector<MIDITrigger> loadTransformerJson(const std::string& filePath, ThreadSafeLogger& logger);
-    static bool loadGtrJsonConfig(int slotIndex, const std::string& filePath, GtrWorkspaceConfig& config, ThreadSafeLogger& logger);
+    static bool loadGtrJsonConfig(int slotIndex, const std::string& filePath, GtrSlotConfig& config, ThreadSafeLogger& logger);
 };
 
 #endif // CONFIG_PARSER_H

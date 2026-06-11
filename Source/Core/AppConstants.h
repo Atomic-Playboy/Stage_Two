@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace PathConstants {
+namespace AppConstants {
     inline const std::string DashboardJson = "dashboard.json";
     inline const std::string TransformerJson = "transformer.json";
     inline const std::string LogFile = "stage_one_runtime.log";
@@ -16,5 +16,8 @@ namespace PathConstants {
     inline const std::string NotepadExe = "notepad.exe";
     inline const std::string ParentDir = "../";
     inline const std::string GrandparentDir = "../../";
-}
 
+    inline const std::string InternalDashboardID = "Stage One Dashboard";
+
+    constexpr int MAX_HARDWARE_SLOTS = 4;
+}

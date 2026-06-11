@@ -1,3 +1,12 @@
+/**
+ * FileWatcher.cpp
+ * * Architectural Decision:
+ * We use Windows API FindFirstChangeNotification to block and wait for OS-level
+ * file system interrupts rather than pegging the CPU with a constant while-loop.
+ * A debounce sleep (100ms) allows IDEs/Notepad to finish writing the file lock 
+ * before we trigger the parse reload.
+ */
+
 #include "FileWatcher.h"
 #include <chrono>
 
@@ -37,6 +46,8 @@ std::string FileWatcher::extractDirectoryPath(const std::string& fullPath) {
     return fullPath.substr(0, pos);
 }
 
+// [STUDY GUIDE: Williams, Chapter 2 - "Managing Threads"]
+// Spawns a detached background thread to poll the file system without freezing the main UI.
 void FileWatcher::startWatching(std::function<void()> onReloadCallback) {
     stopWatching();
     keepRunning = true;
@@ -62,6 +73,9 @@ void FileWatcher::runWatcherLoop() {
     }
 
     std::string dashDir = extractDirectoryPath(lastDash);
+    
+    // [STUDY GUIDE: Petzold / Windows API Reference - Directory Management]
+    // FindFirstChangeNotification is extremely efficient compared to basic while(true) loops.
     HANDLE hDirNotify = FindFirstChangeNotificationA(dashDir.c_str(), FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME);
 
     FILETIME lastDashTime = getFileLastWriteTime(lastDash);
@@ -71,6 +85,7 @@ void FileWatcher::runWatcherLoop() {
         if (hDirNotify != INVALID_HANDLE_VALUE) {
             DWORD dwWait = WaitForSingleObject(hDirNotify, 800);
             if (dwWait == WAIT_OBJECT_0) {
+                // Debounce sleep to prevent partial reads during IDE save operations
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 std::string currentDash, currentTrans;
                 {

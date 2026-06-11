@@ -1,11 +1,11 @@
-#ifndef GTR_WORKSPACE_CONFIG_H
-#define GTR_WORKSPACE_CONFIG_H
+#ifndef GTR_SLOT_CONFIG_H
+#define GTR_SLOT_CONFIG_H
 
 #include "Core/Preset.h"
 #include <string>
 #include <vector>
 
-struct GtrWorkspaceConfig {
+struct GtrSlotConfig {
     bool loaded = false;
     std::string filepath;
     std::string filename = "[No Config Loaded]";
@@ -21,4 +21,4 @@ struct GtrWorkspaceConfig {
     std::string activePresetName = "";
 };
 
-#endif // GTR_WORKSPACE_CONFIG_H
+#endif // GTR_SLOT_CONFIG_H

@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <string>
 #include "Core/AppState.h"
+#include "Core/AppConstants.h"
+#include "UI/UIConstants.h"
 
 class MainWindow {
 public:
@@ -16,20 +18,19 @@ public:
     static void DrawDashboardGrid(HDC hdcMem, RECT mainArea, int rowHeight, int gridRows);
     static void DrawBottomTicker(HDC hdcMem, RECT rect, int viewWidth);
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
-
     static void switchAppView(AppViewMode mode, HWND hwnd);
     static void repositionGtrControls(int width);
 
 private:
-    static HWND hLoadBtn[4];
-    static HWND hFileLabel[4];
-    static HWND hPcDownBtn[4];
-    static HWND hPcUpBtn[4];
-    static HWND hUpperLcd[4];
-    static HWND hButtonLcd[4][6];
-    static HWND hAbLcd[4];
-    static HWND hSendLightsBtn[4];
-    static HWND hSendMidiBtn[4];
+    static HWND hLoadBtn[AppConstants::MAX_HARDWARE_SLOTS];
+    static HWND hFileLabel[AppConstants::MAX_HARDWARE_SLOTS];
+    static HWND hPcDownBtn[AppConstants::MAX_HARDWARE_SLOTS];
+    static HWND hPcUpBtn[AppConstants::MAX_HARDWARE_SLOTS];
+    static HWND hUpperLcd[AppConstants::MAX_HARDWARE_SLOTS];
+    static HWND hButtonLcd[AppConstants::MAX_HARDWARE_SLOTS][6];
+    static HWND hAbLcd[AppConstants::MAX_HARDWARE_SLOTS];
+    static HWND hSendLightsBtn[AppConstants::MAX_HARDWARE_SLOTS];
+    static HWND hSendMidiBtn[AppConstants::MAX_HARDWARE_SLOTS];
 
     static HFONT hLcdFont;
     static HBRUSH hBrushSoftBg;

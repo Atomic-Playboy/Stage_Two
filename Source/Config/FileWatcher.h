@@ -9,11 +9,9 @@ class FileWatcher {
 public:
     FileWatcher();
     ~FileWatcher();
-
     void initializePaths(const std::string& dashboardJsonFile, const std::string& transformerJsonFile);
     void updateDashboardJsonPath(const std::string& newPath);
     void updateTransformerJsonPath(const std::string& newPath);
-
     std::string getTargetDashboardJson() const {
         std::lock_guard<std::mutex> lock(pathMutex);
         return targetDashboardJson;
@@ -39,4 +37,3 @@ private:
     bool keepRunning = false;
     std::function<void()> reloadCallback;
 };
-

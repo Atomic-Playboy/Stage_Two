@@ -1,3 +1,8 @@
+/**
+ * AppState.cpp
+ * Thread-safe global singleton containing runtime UI and hardware cache state.
+ */
+
 #include "Core/AppState.h"
 
 AppState& AppState::getInstance() {
@@ -6,33 +11,36 @@ AppState& AppState::getInstance() {
 }
 
 AppState::AppState() {
+    // Architectural Decision:
+    // Human-readable stage setlists map program changes starting at 1. 
+    // If we initialize at 0, the application launches into a blank, unmapped dashboard.
     currentProgramChange = 1;
 }
 
-DashWorkspaceConfig AppState::getDashWorkspace() const {
+DashboardConfig AppState::getDashboardConfig() const {
     std::lock_guard<std::recursive_mutex> lock(stateMutex);
-    return dashWorkspace;
+    return dashboardConfig;
 }
 
-void AppState::setDashWorkspace(const DashWorkspaceConfig& config) {
+void AppState::setDashboardConfig(const DashboardConfig& config) {
     std::lock_guard<std::recursive_mutex> lock(stateMutex);
-    dashWorkspace = config;
+    dashboardConfig = config;
 }
 
-GtrWorkspaceConfig AppState::getGtrWorkspace(int slot) const {
+GtrSlotConfig AppState::getGtrSlotConfig(int slot) const {
     std::lock_guard<std::recursive_mutex> lock(stateMutex);
-    if (slot >= 0 && slot < 4) return gtrWorkspaces[slot];
-    return GtrWorkspaceConfig();
+    if (slot >= 0 && slot < AppConstants::MAX_HARDWARE_SLOTS) return gtrSlots[slot];
+    return GtrSlotConfig();
 }
 
-void AppState::setGtrWorkspace(int slot, const GtrWorkspaceConfig& config) {
+void AppState::setGtrSlotConfig(int slot, const GtrSlotConfig& config) {
     std::lock_guard<std::recursive_mutex> lock(stateMutex);
-    if (slot >= 0 && slot < 4) gtrWorkspaces[slot] = config;
+    if (slot >= 0 && slot < AppConstants::MAX_HARDWARE_SLOTS) gtrSlots[slot] = config;
 }
 
 DisplayState AppState::getGtrDisplayState(int slot, int btnIndex) const {
     std::lock_guard<std::recursive_mutex> lock(stateMutex);
-    if (slot >= 0 && slot < 4 && btnIndex >= 0 && btnIndex < 7) {
+    if (slot >= 0 && slot < AppConstants::MAX_HARDWARE_SLOTS && btnIndex >= 0 && btnIndex < 7) {
         return currentGuiLcds[slot][btnIndex];
     }
     return DisplayState();
@@ -40,7 +48,7 @@ DisplayState AppState::getGtrDisplayState(int slot, int btnIndex) const {
 
 void AppState::setGtrDisplayState(int slot, int btnIndex, const DisplayState& state) {
     std::lock_guard<std::recursive_mutex> lock(stateMutex);
-    if (slot >= 0 && slot < 4 && btnIndex >= 0 && btnIndex < 7) {
+    if (slot >= 0 && slot < AppConstants::MAX_HARDWARE_SLOTS && btnIndex >= 0 && btnIndex < 7) {
         currentGuiLcds[slot][btnIndex] = state;
     }
 }
@@ -144,8 +152,8 @@ void AppState::loadPresetMatrixBlocks(int pcNumber) {
     std::lock_guard<std::recursive_mutex> lock(stateMutex);
     currentProgramChange = pcNumber;
     blockData.clear();
-    auto it = dashWorkspace.programChangeDashboardMatrix.find(pcNumber);
-    if (it != dashWorkspace.programChangeDashboardMatrix.end() && it->second.active) {
+    auto it = dashboardConfig.programChangeDashboardMatrix.find(pcNumber);
+    if (it != dashboardConfig.programChangeDashboardMatrix.end() && it->second.active) {
         blockData = it->second.interactiveTiles;
     }
     bannerScrollOffset = 0;

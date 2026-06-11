@@ -39,10 +39,10 @@ struct SystemTuning {
     bool verboseRawCrawl = false;
 };
 
-struct WorkspaceConfig {
+struct DashboardConfig {
     SystemTuning systemTuning;
     std::map<std::string, std::string> webCreatorThemeData;
-    std::map<std::string, DualColorNode> themeColors;
+    std::map<std::string, DualColorNode> tileColours;
     std::map<int, PresetMatrixNode> programChangeDashboardMatrix;
 };
 
@@ -73,4 +73,3 @@ struct MIDITrigger {
     } trigger;
     std::vector<Transform> transforms;
 };
-

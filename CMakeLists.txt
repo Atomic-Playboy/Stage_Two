@@ -32,21 +32,48 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # ------------------------------------------------------------
-# Project sources
+# Project sources (Standardized 30-File Architecture)
 # ------------------------------------------------------------
 set(SOURCES
+		# App
 		Source/App/main.cpp
+
+		# Config
 		Source/Config/ConfigParser.cpp
+		Source/Config/ConfigParser.h
 		Source/Config/FileWatcher.cpp
+		Source/Config/FileWatcher.h
+
+		# Core
+		Source/Core/AppConstants.h
 		Source/Core/AppState.cpp
+		Source/Core/AppState.h
 		Source/Core/CoreGlobals.cpp
+		Source/Core/CoreGlobals.h
 		Source/Core/DisplayState.cpp
+		Source/Core/DisplayState.h
+		Source/Core/GtrSlotConfig.h
 		Source/Core/Logger.cpp
+		Source/Core/Logger.h
+		Source/Core/MidiData.h
+		Source/Core/Preset.h
 		Source/Core/Utils.cpp
-		Source/Logic/PresetManager.cpp
+		Source/Core/Utils.h
+
+		# MIDI
 		Source/MIDI/EvaluationEngine.cpp
+		Source/MIDI/EvaluationEngine.h
+		Source/MIDI/GtrSendLights.cpp
+		Source/MIDI/GtrSendLights.h
+		Source/MIDI/MidiUtils.cpp          # <--- New Bitwise Workhorse Module
+		Source/MIDI/MidiUtils.h            # <--- New Bitwise Workhorse Module
+
+		# UI
 		Source/UI/MainWindow.cpp
-		Source/UI/Win32App.cpp		
+		Source/UI/MainWindow.h
+		Source/UI/UIConstants.h
+		Source/UI/Win32App.cpp
+		Source/UI/Win32App.h
 )
 
 add_executable(Stage_Two WIN32 ${SOURCES})

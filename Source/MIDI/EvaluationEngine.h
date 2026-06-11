@@ -41,8 +41,6 @@ public:
 
     void selectActiveHardwareInterface(const std::string& interfaceName);
     std::vector<std::string> getDiscoveredInputs() const;
-
-    // Core functionality upgrades for GTR Integration
     void rebuildPorts(const std::set<std::string>& requestedInPorts, const std::set<std::string>& requestedOutPorts);
     void transmitMidi(const std::string& portName, const std::vector<unsigned char>& message);
 

@@ -3,8 +3,9 @@
 
 #include <windows.h>
 #include "Core/MidiData.h"
-#include "Core/GtrWorkspaceConfig.h"
+#include "Core/GtrSlotConfig.h"
 #include "Core/DisplayState.h"
+#include "Core/AppConstants.h"
 #include <vector>
 #include <string>
 #include <map>
@@ -12,19 +13,21 @@
 #include <chrono>
 #include <functional>
 
-typedef WorkspaceConfig DashWorkspaceConfig;
-
 enum AppViewMode { MODE_DASHBOARD = 0, MODE_GTR = 1, MODE_CONSOLE = 2 };
 
+// [STUDY GUIDE: Williams, Chapter 3 - "Sharing data between threads"]
+// AppState is a thread-safe Singleton using std::recursive_mutex.
+// It bridges the gap between the high-speed background MIDI evaluation thread 
+// and the 30fps Win32 UI painting thread.
 class AppState {
 public:
     static AppState& getInstance();
 
-    DashWorkspaceConfig getDashWorkspace() const;
-    void setDashWorkspace(const DashWorkspaceConfig& config);
+    DashboardConfig getDashboardConfig() const;
+    void setDashboardConfig(const DashboardConfig& config);
 
-    GtrWorkspaceConfig getGtrWorkspace(int slot) const;
-    void setGtrWorkspace(int slot, const GtrWorkspaceConfig& config);
+    GtrSlotConfig getGtrSlotConfig(int slot) const;
+    void setGtrSlotConfig(int slot, const GtrSlotConfig& config);
 
     DisplayState getGtrDisplayState(int slot, int btnIndex) const;
     void setGtrDisplayState(int slot, int btnIndex, const DisplayState& state);
@@ -96,11 +99,13 @@ private:
     AppState(const AppState&) = delete;
     AppState& operator=(const AppState&) = delete;
 
+    // [STUDY GUIDE: Williams, Chapter 3.3 - "Alternative facilities for protecting shared data"]
+    // recursive_mutex allows a thread that already holds the lock to lock it again without deadlocking.
     mutable std::recursive_mutex stateMutex;
 
-    DashWorkspaceConfig dashWorkspace;
-    GtrWorkspaceConfig gtrWorkspaces[5];
-    DisplayState currentGuiLcds[5][7];
+    DashboardConfig dashboardConfig;
+    GtrSlotConfig gtrSlots[AppConstants::MAX_HARDWARE_SLOTS];
+    DisplayState currentGuiLcds[AppConstants::MAX_HARDWARE_SLOTS][7];
     std::map<int, bool> physicalButtonState;
 
     std::vector<DashboardBlock> blockData;
@@ -123,7 +128,6 @@ private:
 
     bool debugConsoleMode = false;
     AppViewMode viewMode = MODE_DASHBOARD;
-
     int dynamicCrawlSpeed = 2;
     int dynamicOrbBlinkDuration = 10;
 };

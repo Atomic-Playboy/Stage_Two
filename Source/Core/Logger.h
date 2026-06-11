@@ -17,4 +17,3 @@ private:
     std::ofstream logFile;
     int historyLimit;
 };
-

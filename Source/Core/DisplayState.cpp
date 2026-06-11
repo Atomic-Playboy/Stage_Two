@@ -1,6 +1,17 @@
+/**
+ * DisplayState.cpp
+ * Logic for translating standard ASCII into proprietary 14-segment hex payloads.
+ * * Architectural Note: 
+ * The outerByte governs perimeter LEDs (0x77 = Top, Top-L, Top-R, Mid).
+ * The innerByte governs internal cross-stroke LEDs (0x01 = Center bar).
+ */
+
 #include "Core/DisplayState.h"
 #include <cctype>
 
+// [STUDY GUIDE: MIDI 1.0 Spec - System Exclusive Messages]
+// These hex bytes map directly to the proprietary SysEx payloads required to render characters 
+// on the physical GTR hardware's LCD displays.
 void mapAsciiToGtrSegments(char c, unsigned char& outerByte, unsigned char& innerByte) {
     outerByte = 0x00;
     innerByte = 0x00;

@@ -13,7 +13,7 @@
 ThreadSafeLogger::ThreadSafeLogger() {
     historyLimit = 50000;
     stringBuffer = "";
-    logFile.open("gtr_engine.log", std::ios::out | std::ios::app);
+    logFile.open(AppConstants::LogFile, std::ios::out | std::ios::app);
 }
 
 ThreadSafeLogger::~ThreadSafeLogger() {
@@ -32,7 +32,9 @@ void ThreadSafeLogger::log(const std::string& message) {
     struct tm buf;
     localtime_s(&buf, &time_t_now);
     std::stringstream ss;
+
     ss << "[" << std::put_time(&buf, "%H:%M:%S") << "." << std::setw(3) << std::setfill('0') << ms.count() << "] " << message << "\r\n";
+    
     std::string formatted = ss.str();
     stringBuffer.append(formatted);
     if (logFile.is_open()) {

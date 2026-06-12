@@ -1,7 +1,8 @@
 #include "UI/Win32App.h"
 #include "UI/MainWindow.h"
 #include "UI/UIConstants.h"
-#include "Core/AppState.h"
+#include "Core/AppStateDashboard.h"
+#include "Core/AppStateTransformer.h"
 #include "Core/CoreGlobals.h"
 #include "Core/AppConstants.h"
 #include <commdlg.h>
@@ -73,13 +74,13 @@ void Win32App::RebuildMasterMenu(HWND hwnd, const std::vector<std::string>& inpu
 
 // [STUDY GUIDE: Petzold, Chapter 1 - "Registering the Window Class"]
 bool Win32App::InitializeAndRun(HINSTANCE hInst, int nShow) {
-    WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW, MainWindow::WndProc, 0, 0, hInst, NULL, LoadCursor(NULL, IDC_ARROW), NULL, NULL, "StageOneClass", NULL };
+    WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW, MainWindow::WndProc, 0, 0, hInst, NULL, LoadCursor(NULL, IDC_ARROW), NULL, NULL, "StageTwoClass", NULL };
     if(!RegisterClassEx(&wc)) return false;
-    HWND hwnd = CreateWindowExA(0, "StageOneClass", "Stage One Production Dashboard Engine (Integrated GTR)", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, 1150, 840, NULL, NULL, hInst, NULL);
+    HWND hwnd = CreateWindowExA(0, "StageTwoClass", "Stage Two Production Dashboard Engine (Integrated GTR)", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, 1150, 840, NULL, NULL, hInst, NULL);
     if(!hwnd) return false;
 
-    AppState::getInstance().setHWnd(hwnd);
-    RebuildMasterMenu(hwnd, AppState::getInstance().getDiscoveredInputs());
+    AppStateDashboard::getInstance().setHWnd(hwnd);
+    RebuildMasterMenu(hwnd, AppStateTransformer::getInstance().getDiscoveredInputs());
     
     ShowWindow(hwnd, nShow);
     UpdateWindow(hwnd);

@@ -1,4 +1,5 @@
 #include "Core/Utils.h"
+#include "Core/AppConstants.h"
 #include <algorithm>
 #include <fstream>
 #include <mutex>
@@ -30,7 +31,7 @@ bool containsSubstringIgnoreCase(std::string haystack, std::string needle) {
 
 void appendToLogFile(const std::string& line) {
     std::lock_guard<std::mutex> lock(utilLogMutex);
-    std::ofstream outFile("gtr_engine.log", std::ios_base::app);
+    std::ofstream outFile(AppConstants::LogFile, std::ios_base::app);
     if (outFile.is_open()) {
         outFile << line << "\n";
     }

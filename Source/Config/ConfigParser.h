@@ -2,7 +2,7 @@
 #define CONFIG_PARSER_H
 
 #include "Core/MidiData.h"
-#include "Core/GtrSlotConfig.h"
+#include "GTR/GtrSlotConfig.h"
 #include "Core/Logger.h"
 #include <string>
 #include <vector>
@@ -13,5 +13,4 @@ public:
     static std::vector<MIDITrigger> loadTransformerJson(const std::string& filePath, ThreadSafeLogger& logger);
     static bool loadGtrJsonConfig(int slotIndex, const std::string& filePath, GtrSlotConfig& config, ThreadSafeLogger& logger);
 };
-
 #endif // CONFIG_PARSER_H

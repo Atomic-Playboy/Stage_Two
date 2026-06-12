@@ -5,7 +5,8 @@
  */
 
 #include "Core/CoreGlobals.h"
-#include "Core/AppState.h"
+#include "Core/AppStateDashboard.h"
+#include "Core/AppStateGTR.h"
 #include "Core/AppConstants.h"
 #include "Config/ConfigParser.h"
 #include "UI/MainWindow.h"
@@ -24,23 +25,23 @@ namespace CoreGlobals {
 
         logger.log("[INFO] --- System Configuration Reload Initiated ---");
         
-        AppState& state = AppState::getInstance();
+        
         std::set<std::string> requestedInPorts;
         std::set<std::string> requestedOutPorts;
-        
+
         // 1. Load Dashboard matrix
         DashboardConfig nextDashboard;
         if (ConfigParser::loadDashboardJson(jsonPath, nextDashboard, logger)) {
-            state.setDashboardConfig(nextDashboard);
-            if (!state.isInterfaceOverridden()) {
-                state.setActiveDashInterface(nextDashboard.systemTuning.midiInterface);
+            AppStateDashboard::getInstance().setDashboardConfig(nextDashboard);
+            if (!AppStateDashboard::getInstance().isInterfaceOverridden()) {
+                AppStateDashboard::getInstance().setActiveDashInterface(nextDashboard.systemTuning.midiInterface);
             }
-            if (!state.isChannelOverridden()) {
-                state.setActiveDashChannel(nextDashboard.systemTuning.defaultChannel);
+            if (!AppStateDashboard::getInstance().isChannelOverridden()) {
+                AppStateDashboard::getInstance().setActiveDashChannel(nextDashboard.systemTuning.defaultChannel);
             }
-            state.loadPresetMatrixBlocks(state.getCurrentProgramChange());
-            if (state.getActiveDashInterface() != "ANY" && !state.getActiveDashInterface().empty()) {
-                requestedInPorts.insert(state.getActiveDashInterface());
+            AppStateDashboard::getInstance().loadPresetMatrixBlocks(AppStateDashboard::getInstance().getCurrentProgramChange());
+            if (AppStateDashboard::getInstance().getActiveDashInterface() != "ANY" && !AppStateDashboard::getInstance().getActiveDashInterface().empty()) {
+                requestedInPorts.insert(AppStateDashboard::getInstance().getActiveDashInterface());
             }
         } else {
             logger.log("[ERROR] Failed to load Dashboard JSON.");
@@ -50,9 +51,9 @@ namespace CoreGlobals {
         if (engine) {
             auto rules = ConfigParser::loadTransformerJson(transPath, logger);
             engine->setTransformerRules(rules);
-            engine->updateDashboardInterfaces(state.getActiveDashInterface(), state.getActiveDashChannel());
+            engine->updateDashboardInterfaces(AppStateDashboard::getInstance().getActiveDashInterface(), AppStateDashboard::getInstance().getActiveDashChannel());
             engine->updateTuningGlobals(nextDashboard.systemTuning);
-            engine->selectActiveHardwareInterface(state.getActiveDashInterface());
+            engine->selectActiveHardwareInterface(AppStateDashboard::getInstance().getActiveDashInterface());
             
             for (const auto& rule : rules) {
                 if (rule.trigger.interfaceName != "ANY" && !rule.trigger.interfaceName.empty()) {
@@ -73,10 +74,10 @@ namespace CoreGlobals {
         char buffer[MAX_PATH];
         GetCurrentDirectoryA(MAX_PATH, buffer);
         for (int i = 0; i < AppConstants::MAX_HARDWARE_SLOTS; ++i) {
-            std::string targetFile = MainWindow::searchValidWebPath("gtr" + std::to_string(i + 1) + ".json");
+            std::string targetFile = MainWindow::searchValidWebPath(AppConstants::GtrConfigs[i]);
             GtrSlotConfig gtrConfig;
             if (ConfigParser::loadGtrJsonConfig(i, targetFile, gtrConfig, logger)) {
-                state.setGtrSlotConfig(i, gtrConfig);
+                AppStateGTR::getInstance().setGtrSlotConfig(i, gtrConfig);
                 if (!gtrConfig.inPort1.empty()) requestedInPorts.insert(gtrConfig.inPort1);
                 if (!gtrConfig.inPort2.empty()) requestedInPorts.insert(gtrConfig.inPort2);
                 if (!gtrConfig.outPort1.empty()) requestedOutPorts.insert(gtrConfig.outPort1);
@@ -91,7 +92,7 @@ namespace CoreGlobals {
 
         // [STUDY GUIDE: Petzold, Chapter 4 - "An Intro to GDI" -> Invalidating the Window]
         // Invalidating the rect forces Windows to post a priority WM_PAINT message, updating the UI.
-        HWND hwnd = state.getHWnd();
+        HWND hwnd = AppStateDashboard::getInstance().getHWnd();
         if(hwnd) {
             MainWindow::SetupConsoleScrollbar(hwnd);
             InvalidateRect(hwnd, NULL, TRUE);

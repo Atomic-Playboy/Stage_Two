@@ -1,9 +1,10 @@
 #include "MIDI/EvaluationEngine.h"
-#include "Core/AppState.h"
+#include "Core/AppStateDashboard.h"
+#include "Core/AppStateGTR.h"
 #include "Core/Utils.h"
 #include "MIDI/MidiUtils.h" // <--- Upgraded Include
 #include "Core/AppConstants.h"
-#include "MIDI/GtrSendLights.h"
+#include "GTR/GtrSendLights.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -23,9 +24,9 @@ static bool parseRawMidi(const std::vector<unsigned char>& bytes, const std::str
     return incomingMsg.type != "UNKNOWN";
 }
 
-static void evaluateGtrHardware(const RawMidiMessage& incomingMsg, unsigned char statusByte, AppState& state) {
+static void evaluateGtrHardware(const RawMidiMessage& incomingMsg, unsigned char statusByte) {
     for (int slot = 0; slot < AppConstants::MAX_HARDWARE_SLOTS; ++slot) {
-        GtrSlotConfig gtrCfg = state.getGtrSlotConfig(slot); if (!gtrCfg.loaded) continue;
+        GtrSlotConfig gtrCfg = AppStateGTR::getInstance().getGtrSlotConfig(slot); if (!gtrCfg.loaded) continue;
         if (containsSubstringIgnoreCase(incomingMsg.interfaceName, gtrCfg.inPort1) || containsSubstringIgnoreCase(incomingMsg.interfaceName, gtrCfg.inPort2)) {
             if (incomingMsg.type == "CC" && parseChannelMatch(gtrCfg.inChan, statusByte)) {
                 int currentPc = gtrCfg.activePcNum;
@@ -41,7 +42,7 @@ static void evaluateGtrHardware(const RawMidiMessage& incomingMsg, unsigned char
     }
 }
 
-static bool evaluateTransformer(const RawMidiMessage& incomingMsg, AppState& state, std::string& transformerLog) {
+static bool evaluateTransformer(const RawMidiMessage& incomingMsg, std::string& transformerLog) {
     bool ruleMatched = false; std::string matchPriorityNum = ""; const MIDITrigger* matchedRulePtr = nullptr;
     for (const auto& rule : g_CurrentEngineInstance->transformerRules) {
         bool matchInt = (rule.trigger.interfaceName == "ANY" || incomingMsg.interfaceName.find(rule.trigger.interfaceName) != std::string::npos);
@@ -67,13 +68,13 @@ static bool evaluateTransformer(const RawMidiMessage& incomingMsg, AppState& sta
             }
             transformerLog += tsStream.str();
             if (trans.interfaceName == AppConstants::InternalDashboardID) {
-                if (trans.type == "CC" && trans.details.size() >= 2) { bool changed = false; state.updateBlockState(safeStoi(trans.details[0]), safeStoi(trans.details[1]) > 0, changed); if (g_GlobalStateCallback) g_GlobalStateCallback(1, -1); }
-                else if (trans.type == "PC" && trans.details.size() >= 1) { int pcVal = safeStoi(trans.details[0]); state.loadPresetMatrixBlocks(pcVal); if (g_GlobalStateCallback) g_GlobalStateCallback(1, pcVal); }
+                if (trans.type == "CC" && trans.details.size() >= 2) { bool changed = false; AppStateDashboard::getInstance().updateBlockState(safeStoi(trans.details[0]), safeStoi(trans.details[1]) > 0, changed); if (g_GlobalStateCallback) g_GlobalStateCallback(1, -1); }
+                else if (trans.type == "PC" && trans.details.size() >= 1) { int pcVal = safeStoi(trans.details[0]); AppStateDashboard::getInstance().loadPresetMatrixBlocks(pcVal); if (g_GlobalStateCallback) g_GlobalStateCallback(1, pcVal); }
             }
             else if (trans.interfaceName.find("GTR_SLOT_") == 0) {
                 int targetSlot = safeStoi(trans.interfaceName.substr(9), 1) - 1;
                 if (targetSlot >= 0 && targetSlot < AppConstants::MAX_HARDWARE_SLOTS) {
-                    GtrSlotConfig targetCfg = state.getGtrSlotConfig(targetSlot);
+                    GtrSlotConfig targetCfg = AppStateGTR::getInstance().getGtrSlotConfig(targetSlot);
                     if (targetCfg.loaded && trans.type == "PC" && !trans.details.empty()) { int pcVal = safeStoi(trans.details[0], -1) - 1; for (const auto& preset : targetCfg.presets) { if (preset.pcTrigger == pcVal) { activatePreset(targetSlot, preset, targetCfg); break; } } }
                 }
             } else {
@@ -87,10 +88,10 @@ static bool evaluateTransformer(const RawMidiMessage& incomingMsg, AppState& sta
     return ruleMatched;
 }
 
-static bool evaluateDashboard(const RawMidiMessage& incomingMsg, AppState& state) {
+static bool evaluateDashboard(const RawMidiMessage& incomingMsg) {
     bool interfaceMatch = (g_CurrentEngineInstance->dashInterface == "ANY" || incomingMsg.interfaceName.find(g_CurrentEngineInstance->dashInterface) != std::string::npos); bool channelMatch = (g_CurrentEngineInstance->dashChannel == -1 || incomingMsg.channel == g_CurrentEngineInstance->dashChannel); bool isDashboardMsg = false;
-    if (interfaceMatch && channelMatch) { if (incomingMsg.type == "PC") isDashboardMsg = true; else if (incomingMsg.type == "CC") { for (const auto& block : state.getBlockData()) { if (block.cc == incomingMsg.ccNumber) { isDashboardMsg = true; break; } } } }
-    if (isDashboardMsg && incomingMsg.type == "CC") { bool changed = false; state.updateBlockState(incomingMsg.ccNumber, incomingMsg.ccValue > 0, changed); }
+    if (interfaceMatch && channelMatch) { if (incomingMsg.type == "PC") isDashboardMsg = true; else if (incomingMsg.type == "CC") { for (const auto& block : AppStateDashboard::getInstance().getBlockData()) { if (block.cc == incomingMsg.ccNumber) { isDashboardMsg = true; break; } } } }
+    if (isDashboardMsg && incomingMsg.type == "CC") { bool changed = false; AppStateDashboard::getInstance().updateBlockState(incomingMsg.ccNumber, incomingMsg.ccValue > 0, changed); }
     return isDashboardMsg;
 }
 
@@ -141,9 +142,9 @@ void globalRtMidiStaticRouter(double deltatime, std::vector<unsigned char>* mess
     if (incomingMsg.type == "SYSEX") { textStream << "SYSEX:"; for (size_t i = 0; i < bytes.size(); ++i) { char hexBuf[3]; sprintf_s(hexBuf, " %02X", bytes[i]); textStream << hexBuf; } }
     else { textStream << "Ch:" << incomingMsg.channel << " " << incomingMsg.type; if (incomingMsg.type == "CC" || incomingMsg.type == "NOTE_ON" || incomingMsg.type == "NOTE_OFF") textStream << " N:" << incomingMsg.ccNumber << " V:" << incomingMsg.ccValue; else if (incomingMsg.type == "PC") textStream << " P:" << incomingMsg.programNumber; }
     std::string formattedEvent = textStream.str(); if (g_GlobalCrawlCallback) g_GlobalCrawlCallback(formattedEvent);
-    AppState& state = AppState::getInstance(); evaluateGtrHardware(incomingMsg, statusByte, state);
-    std::string transformerLog = formattedEvent; bool ruleMatched = evaluateTransformer(incomingMsg, state, transformerLog); g_CurrentEngineInstance->getLogger().log(transformerLog);
-    bool isDashboardMsg = evaluateDashboard(incomingMsg, state); if (isDashboardMsg) g_CurrentEngineInstance->getLogger().log(formattedEvent + " -> Dashboard");
+     evaluateGtrHardware(incomingMsg, statusByte);
+    std::string transformerLog = formattedEvent; bool ruleMatched = evaluateTransformer(incomingMsg, transformerLog); g_CurrentEngineInstance->getLogger().log(transformerLog);
+    bool isDashboardMsg = evaluateDashboard(incomingMsg); if (isDashboardMsg) g_CurrentEngineInstance->getLogger().log(formattedEvent + " -> Dashboard");
     int passPcValue = (isDashboardMsg && incomingMsg.type == "PC") ? incomingMsg.programNumber : -1;
     if (ruleMatched) { if (g_GlobalStateCallback) g_GlobalStateCallback(2, passPcValue); } else if (isDashboardMsg) { if (g_GlobalStateCallback) g_GlobalStateCallback(1, passPcValue); } else { if (g_GlobalStateCallback) g_GlobalStateCallback(3, passPcValue); }
 }

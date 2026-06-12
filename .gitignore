@@ -27,6 +27,10 @@ compile_commands.json
 # --- Python / Build Scripts ---
 __pycache__/
 *.pyc
+s2.py
+source.py
+Stage_Two.txt
+
 
 # --- External Dependencies ---
 # Explicitly ignoring the _deps directory created by CMake

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(GTRMapperDashboard
+project(Stage_Two
         VERSION 1.0
         LANGUAGES CXX
 )
@@ -32,48 +32,54 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # ------------------------------------------------------------
-# Project sources (Standardized 30-File Architecture)
+# Project sources (Standardized 32-File Architecture)
 # ------------------------------------------------------------
 set(SOURCES
-		# App
-		Source/App/main.cpp
+        # App
+        Source/App/main.cpp
 
-		# Config
-		Source/Config/ConfigParser.cpp
-		Source/Config/ConfigParser.h
-		Source/Config/FileWatcher.cpp
-		Source/Config/FileWatcher.h
+        # Config
+        Source/Config/ConfigParser.cpp
+        Source/Config/ConfigParser.h
+        Source/Config/FileWatcher.cpp
+        Source/Config/FileWatcher.h
 
-		# Core
-		Source/Core/AppConstants.h
-		Source/Core/AppState.cpp
-		Source/Core/AppState.h
-		Source/Core/CoreGlobals.cpp
-		Source/Core/CoreGlobals.h
-		Source/Core/DisplayState.cpp
-		Source/Core/DisplayState.h
-		Source/Core/GtrSlotConfig.h
-		Source/Core/Logger.cpp
-		Source/Core/Logger.h
-		Source/Core/MidiData.h
-		Source/Core/Preset.h
-		Source/Core/Utils.cpp
-		Source/Core/Utils.h
+        # Core
+        Source/Core/AppConstants.h
+        Source/Core/AppStateDashboard.cpp
+        Source/Core/AppStateDashboard.h
+        Source/Core/AppStateGTR.cpp
+        Source/Core/AppStateGTR.h
+        Source/Core/AppStateTransformer.cpp
+        Source/Core/AppStateTransformer.h
+        Source/Core/CoreGlobals.cpp
+        Source/Core/CoreGlobals.h
+        Source/Core/Logger.cpp
+        Source/Core/Logger.h
+        Source/Core/MidiData.h
+        Source/Core/Utils.cpp
+        Source/Core/Utils.h
 
-		# MIDI
-		Source/MIDI/EvaluationEngine.cpp
-		Source/MIDI/EvaluationEngine.h
-		Source/MIDI/GtrSendLights.cpp
-		Source/MIDI/GtrSendLights.h
-		Source/MIDI/MidiUtils.cpp          # <--- New Bitwise Workhorse Module
-		Source/MIDI/MidiUtils.h            # <--- New Bitwise Workhorse Module
+        # GTR
+        Source/GTR/GTRDisplayState.cpp
+        Source/GTR/GTRDisplayState.h
+        Source/GTR/GTRPreset.h
+        Source/GTR/GtrSendLights.cpp
+        Source/GTR/GtrSendLights.h
+        Source/GTR/GtrSlotConfig.h
 
-		# UI
-		Source/UI/MainWindow.cpp
-		Source/UI/MainWindow.h
-		Source/UI/UIConstants.h
-		Source/UI/Win32App.cpp
-		Source/UI/Win32App.h
+        # MIDI
+        Source/MIDI/EvaluationEngine.cpp
+        Source/MIDI/EvaluationEngine.h
+        Source/MIDI/MidiUtils.cpp
+        Source/MIDI/MidiUtils.h
+
+        # UI
+        Source/UI/MainWindow.cpp
+        Source/UI/MainWindow.h
+        Source/UI/UIConstants.h
+        Source/UI/Win32App.cpp
+        Source/UI/Win32App.h
 )
 
 add_executable(Stage_Two WIN32 ${SOURCES})
